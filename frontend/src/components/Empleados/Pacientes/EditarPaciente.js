@@ -107,6 +107,87 @@ const ActualizarPaciente = () => {
     paciente.nac_paciente = fecha.format("YYYY-MM-DD");
   };
 
+  const validateIdNumber = (event) => {
+    const dni = event.target.value;
+    //Validamos que la cédula solo contenga 10 dígitos
+    if (dni.length === 10) {
+      //Definimos el último dígito o tambien llamado dígito verificador
+      const lastDigit = parseInt(dni[dni.length - 1]);
+
+      //Definimos variables a utilizar
+      let pares = 0;
+      let impares = 0;
+      let suma = 0;
+
+      //Iteramos cada item excluyendo el último digito, aplicando el Algoritmo de Luhn
+      for (let i = 1; i <= dni.length - 1; i++) {
+        if (i % 2 === 0) {
+          pares += parseInt(dni[i - 1]);
+        } else {
+          let x = parseInt(dni[i - 1]) * 2;
+          x > 9 ? (impares += x - 9) : (impares += x);
+        }
+      }
+
+      suma += pares + impares;
+
+      //extraemos el primer digito de la suma
+      const firstDigit = parseInt(suma.toString()[0]);
+
+      //Obtenemos la decena
+      const decena = (firstDigit + 1) * 10;
+
+      //Obtenemos el digito validador
+      let validatorDigit = decena - suma;
+
+      //Si el dígito verificador es mayor a 10 lo igualamos a 0
+      if (validatorDigit >= 10) {
+        validatorDigit = 0;
+      }
+
+      //Codigo de provincia
+      //Validamos si la cedula pertenece a alguna provincia
+      const provinceCode = parseInt(dni[0] + dni[1]);
+
+      //Valida cédulas locales y de Ecuatorianos en el exterior
+      if (provinceCode > 24 && provinceCode !== 30) {
+        setErrorMsg("La cédula es incorrecta no pertenece a ninguna provincia");
+        errRef.current.focus();
+      }
+      console.log("Codigo de Provincia: " + provinceCode);
+
+      if (validatorDigit === lastDigit) {
+        return `Esta cédula es correcta: ${dni}`;
+      } else {
+        setErrorMsg(`Esta cédula es incorrecta : ${dni}`);
+        errRef.current.focus();
+      }
+    } else {
+      setErrorMsg(`La cédula debe tener 10 dígitos unicamente`);
+      errRef.current.focus();
+    }
+  };
+
+  const validateCellphone = (event) => {
+    const number = event.target.value;
+    const regex = /^09\d{8}$/;
+    regex.test(number);
+    if (regex.test(number) !== true) {
+      setErrorMsg(" Número de celular incorrecto");
+      errRef.current.focus();
+    }
+  };
+
+  const validateEmail = (event) => {
+    const email = event.target.value;
+    const regex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+    regex.test(email);
+    if (regex.test(email) !== true) {
+      setErrorMsg(" Email incorrecto");
+      errRef.current.focus();
+    }
+  };
+
   return (
     <>
       <AppBar position="static">
@@ -147,6 +228,7 @@ const ActualizarPaciente = () => {
                 </Typography>
                 <TextField
                   required
+                  onBlur={validateIdNumber}
                   onChange={handleChange}
                   name="cedula_paciente"
                   value={paciente.cedula_paciente}
@@ -251,6 +333,7 @@ const ActualizarPaciente = () => {
                 </Typography>
                 <TextField
                   required
+                  onBlur={validateEmail}
                   onChange={handleChange}
                   name="email_paciente"
                   value={paciente.email_paciente}
@@ -279,6 +362,7 @@ const ActualizarPaciente = () => {
                 </Typography>
                 <TextField
                   required
+                  onBlur={validateCellphone}
                   onChange={handleChange}
                   name="celular_paciente"
                   value={paciente.celular_paciente}
